@@ -115,9 +115,9 @@ def main():
                 toWrite = "# "+name+"\n"+description
         else:
             if "_" in name:
-                toWrite = "# "+name.split("_")
+                toWrite = "# "+" ".join(name.split("_"))
             elif "-" in name:
-                toWrite = "# "+name.split("-")
+                toWrite = "# "+" ".join(name.split("-"))
             else:
                 toWrite = "# "+name
 
