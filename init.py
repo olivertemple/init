@@ -149,29 +149,29 @@ def main():
                 file = open("index.html", "w")
                 ###fills the html file with default code
                 content = ('''
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            <title>'''+name+'''</title>
-            <meta name="description" content="'''+(description if description != None else "")+'''">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link rel="stylesheet" href="./css/index.css">
-        </head>
-        <body>
-            <script src="./js/index.js" async></script>
-        </body>
-    </html>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>'''+name+'''</title>
+        <meta name="description" content="'''+(description if description != None else "")+'''">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="./css/index.css">
+    </head>
+    <body>
+        <script src="./js/index.js" async></script>
+    </body>
+</html>
                 ''')
                 file.write(content)
                 file = open("./scss/index.scss", "w")
                 ### fills scss file with default code
                 file.write('''
-    * {
-        margin: 0;
-        padding: 0;
-    }
+* {
+    margin: 0;
+    padding: 0;
+}
                 ''')
                 ### create blank css and js files
                 file = open("./css/index.css", "x")
