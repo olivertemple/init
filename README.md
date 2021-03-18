@@ -8,7 +8,7 @@ To install add the executable file to your python scripts folder, or another fol
 
 Alternativeley you can add the folder that you save the executable file in to your path environment variable.
 
-To do this press `Ctrc + R` and paste in `C:\Windows\System32\systempropertiesadvanced.exe` and click ok.
+To do this press `win + R` and paste in `C:\Windows\System32\systempropertiesadvanced.exe` and click ok.
 
 This will open the controll panel. Click "Environment Variables" in the bottom right corner.
 
