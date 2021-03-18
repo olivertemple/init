@@ -15,14 +15,25 @@ This will open the controll panel. Click "Environment Variables" in the bottom r
 In system variables, select Path and click "edit". Click new and enter the path to the folder containing the executable file.
 
 ## Usage
-```init name description -d directory -p private -t token```
+```init NAME -d DESCRIPTION -p PATH -t TYPE -v --token TOKEN -f FILE```
 
 ### Arguments
 Required:
-- `name`: name of the repositroy
-- `description`: a breif description for the repository
+- `name`: name of the repo.
 
 Optional:
--  `-d, --directory, directory`: the directory in which to create the new rpository, default is your current directory
--  `-p, --private, private`: (bool) the visibility of the repository, default is private
--  `-t, --token, token`: the guthub access token. access token will be stored as an environment variable and will be updated with this option
+- `--description, -d, DESCRIPTION`: brief description of the repo.
+- `--path, -p, PATH`: path in which to create new repo, default is current path.
+-  `--type, -t, TYPE`: directory structure to create.
+
+    - `web`: creates a scss, css, js and assets folder. Also creates a html file with default code and links to css and js. Margins and padding set to 0 in scss file, which is compiled to css. The scss file is then watched for changes.
+
+    - `cmake`: creates an include and src directory. Creates an empty main.c file and a CMakeFiles.txt with the necessary information.
+
+    - `cmakepp` or `cmake++`: creates an include and src directory. Creates an empty main.cpp file and a CMakeFiles.txt with the necessary information.
+
+    - `rust`: creates an src folder, with the default main.rs file, as well as a Cargo.toml file (uses `cargo run` to create).
+
+-  `-v, --visible`: `bool` the visibility of the repository, default is private
+-  `--token, TOKEN`: the guthub access token. access token will be stored as an environment variable and will be updated with this option
+- `--file, -f, FILE`: create an additional file.

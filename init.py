@@ -4,7 +4,6 @@ from json import dumps
 import argparse
 import subprocess
 
-
 def main():
     print('''
      _       _       
@@ -15,52 +14,63 @@ def main():
     |_|_| |_|_|  \__)
     ''')
 
+    ### get arguments from the command line
     parser = argparse.ArgumentParser()
 
     parser.add_argument("name", help="name of new repository")
     parser.add_argument(
-        "description", help="description for the new repository")
-    parser.add_argument("--directory", "-d",
+        "--description", "-d", help="description for the new repository")
+    parser.add_argument("--path", "-p",
                         help="path to create new repo, default is current path")
     parser.add_argument(
-        "--private", "-p", help="bool for weather the new repository is private or not, defaults to true")
+        "--visible", "-v", default=False, action="store_true", help="bool for weather the new repository is private or not, defaults to true")
     parser.add_argument(
-        "--token", "-t", help="update the stored github access token")
+        "--token", help="update the stored github access token")
+    parser.add_argument("--file", "-f", help="create an additional file")
+    parser.add_argument(
+        "--type", "-t", help="type of file structure to initialise, web/cmake/cmakepp/rust")
 
     args = (parser.parse_args())
 
+    webstack = False
+
+    ### ensures that there are no spaces in the name
+    if " " in args.name:
+        args.name = "-".join(args.name.split(" "))
+
+    ### tries to get github token from environment variables
+    ###! not secure
     try:
         if args.token == None:
+            ### uses stored token
             token = os.environ['GITHUBTOKEN']
             print("using stored token...")
         else:
+            ### updates stored token if a new one is supplied
             print("updating stored token...")
             token = args.token
             os.system("setx GITHUBTOKEN "+token)
 
     except KeyError:
         if args.token == None:
+            ### prompts for access token if not available
             token = input("please enter your github token: ")
             os.system("setx GITHUBTOKEN "+token)
         else:
+            ## updates stored token if a new one is supplied
             print("updating stored token...")
             token = args.token
             os.system("setx GITHUBTOKEN "+token)
 
-    try:
-        if args.private.lower() == "false" or args.private.lower() == "f" or args.private == "0":
-            private = False
-        else:
-            private = True
-    except:
-        private = True
+    private = not args.visible
 
     name = args.name
     description = args.description
-    path = args.directory
+    path = args.path
 
     print("creating new repository ", name, "...")
 
+    ### creates payload to post
     payload = {
         "name": name,
         "description": description,
@@ -69,11 +79,14 @@ def main():
         "has_projects": True,
         "has_wiki": True}
 
+    ### sends request to github to create new repo
     r = post(url="https://api.github.com/user/repos",
              data=dumps(payload), auth=("token", token))
 
+    ### if creation is successful
     if r.status_code == 201:
         print("creating README.md...")
+        ### if a path is supplied, move to it
         if path != None:
             if path[0] == ".":
                 if path[1] == '/' or path[1] == "\\":
@@ -85,29 +98,152 @@ def main():
                     os.chdir(os.getcwd()+"\\"+path)
             else:
                 os.chdir(path)
+        
+        ### make directory and enter it
         os.mkdir(name)
         os.chdir("./"+name)
 
+        ### create readme
         file = open("README.md", "w")
-        try:
-            toWrite = "# "+name.split("_")+"\n"+description
-        except:
-            try:
+
+        if description != None:
+            if "_" in description:
+                toWrite = "# "+name.split("_")+"\n"+description
+            elif "-" in description:
                 toWrite = "# "+name.split("-")+"\n"+description
-            except:
+            else:
                 toWrite = "# "+name+"\n"+description
+        else:
+            if "_" in name:
+                toWrite = "# "+name.split("_")
+            elif "-" in name:
+                toWrite = "# "+name.split("-")
+            else:
+                toWrite = "# "+name
 
         file.write(toWrite)
         file.close()
 
+        ### creates an extra file if supplied
+        if args.file != None:
+            file = open(args.file, "x")
+            file.close()
+
+        ###creates file structure if supplied
+        if args.type != None:
+            if args.type.lower() == "web":
+                ### web dev structure
+                #scss
+                    #index.css
+                #css
+                    #index.css
+                #js
+                    #index.js
+                #assets
+                #index.html
+                webstack = True
+                os.mkdir("scss")
+                os.mkdir("js")
+                os.mkdir("css")
+                os.mkdir("assets")
+                file = open("index.html", "w")
+                ###fills the html file with default code
+                content = ('''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <title>'''+name+'''</title>
+            <meta name="description" content="'''+(description if description != None else "")+'''">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="stylesheet" href="./css/index.css">
+        </head>
+        <body>
+            <script src="./js/index.js" async></script>
+        </body>
+    </html>
+                ''')
+                file.write(content)
+                file = open("./scss/index.scss", "w")
+                ### fills scss file with default code
+                file.write('''
+    * {
+        margin: 0;
+        padding: 0;
+    }
+                ''')
+                ### create blank css and js files
+                file = open("./css/index.css", "x")
+                file = open("./js/index.js", "x")
+
+                ### compile scss file to css
+                os.system(
+                    "sass --no-source-map ./scss/index.scss ./css/index.css")
+
+            elif args.type.lower() == "cmake":
+                ### c file structure
+                #include
+                #src
+                    #main.c
+                #CMakeFiles.txt
+                os.mkdir("include")
+                os.mkdir("src")
+                file = open("./src/main.c", "x")
+                file = open("./CMakeFiles.txt", "w")
+                ### fill cmakefile with information
+                file.write('''
+cmake_minimum_required(VERSION 3.10)
+project('''+name+''')
+add_executable(src/main.c)
+                ''')
+                file.close()
+
+            elif args.type.lower() == "cmake++" or args.type.lower() == "cmakepp":
+                ### c++ file structure
+                #include
+                #src
+                    #main.cpp
+                #CMakeFiles.txt
+                os.mkdir("include")
+                os.mkdir("src")
+                file = open("./src/main.cpp", "x")
+                file = open("./CMakeFiles.txt", "w")
+                ### fill cmakefile with information
+                file.write('''
+cmake_minimum_required(VERSION 3.10)
+project('''+name+''')
+add_executable(src/main.cpp)
+                ''')
+                file.close()
+
+            elif args.type.lower() == "rust" or args.type.lower() == "rs":
+                ### rust file structure
+                #src
+                    #main.rs
+                #Cargo.toml
+                os.system("cargo init")
+
+        ### initiate git repository
         os.system("git init")
-        os.system("git add README.md")
+        ### add files
+        os.system("git add .")
+        ### commit
         os.system('''git commit -m "inital commit"''')
 
-        os.system("git remote add origin https://github.com/olivertemple/"+name)
+        ### get username
+        username = subprocess.check_output("git config --global user.name", shell=True).decode().rstrip()
+        ### add github repository to remote
+        os.system("git remote add origin https://github.com/"+username+"/"+name)
         os.system("git branch -m master main")
         os.system("git push -u origin main")
-        os.popen("code .")
+        ### open vscode
+        os.system("code .")
+
+        ### watches scss if webstack has been used
+        if webstack == True:
+            os.system(
+                "sass --no-source-map --watch ./scss/index.scss ./css/index.css")
 
     elif r.status_code == 422:
         print("ERROR: repository already exists on github")
