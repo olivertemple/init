@@ -3,8 +3,8 @@ With init you can initialise any project with a single command. It will create t
 
 You will need to create an access token.
 
-## Instillation
-To install add the executable file to your python scripts folder, or another folder that is in your path environment variable.
+## Installation
+To install, add the executable file to your python scripts folder, or another folder that is in your path environment variable.
 
 Alternativeley you can add the folder that you save the executable file in to your path environment variable.
 
