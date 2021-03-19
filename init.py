@@ -3,6 +3,17 @@ from requests import post
 from json import dumps
 import argparse
 import subprocess
+import threading
+
+class thread (threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    
+    def run(self):
+        watchSass()
+
+def watchSass():
+    os.system("sass --no-source-map --watch ./scss/index.scss ./css/index.css")
 
 def main():
     print('''
@@ -237,13 +248,15 @@ add_executable(src/main.cpp)
         os.system("git remote add origin https://github.com/"+username+"/"+name)
         os.system("git branch -m master main")
         os.system("git push -u origin main")
-        ### open vscode
-        os.system("code .")
 
         ### watches scss if webstack has been used
         if webstack == True:
-            os.system(
-                "sass --no-source-map --watch ./scss/index.scss ./css/index.css")
+            thread().start()
+
+        ### open vscode
+        os.system("code .")
+
+        
 
     elif r.status_code == 422:
         print("ERROR: repository already exists on github")
