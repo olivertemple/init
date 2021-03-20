@@ -15,7 +15,9 @@ This will open the controll panel. Click "Environment Variables" in the bottom r
 In system variables, select Path and click "edit". Click new and enter the path to the folder containing the executable file.
 
 ## Usage
-```init NAME -d DESCRIPTION -p PATH -t TYPE -v --token TOKEN -f FILE```
+```
+init NAME -d DESCRIPTION -p PATH -t TYPE -v --token TOKEN -f FILE
+```
 
 ### Arguments
 Required:
@@ -78,22 +80,23 @@ Optional:
 - `--file, -f, FILE`: create additional files. For multiple files, either use quotes or separate files by commas. `-f "index.html index.js"` or `-f index.html,index.js`
 
 ## Examples
-`init example1`
-
+```
+init example1
+```
 Creates a private repository called example1 in the current directory.
-
-`init example2 -f main.py`
-
+```
+init example2 -f main.py
+```
 Create a private repository called example2 in the current directory with a main.py file.
-
-`init example3 -d "this is a brief description for this repo" -p .\Desktop\ -t web`
-
+```
+init example3 -d "this is a brief description for this repo" -p .\Desktop\ -t web
+```
 Create a private repository called example3 with a description of "this is a brief description for this repo" on the desktop using the web file structure.
-
-`init example3 -p C:\Users\user\Documents\ -f index.html,index.js`
-
+```
+init example3 -p C:\Users\user\Documents\ -f index.html,index.js
+```
 Create a private repository called example3 in the users documents with no description with 2 files index.html and index.js
-
-`init "example 5" -v -f "main.py requirements.txt"`
-
+```
+init "example 5" -v -f "main.py requirements.txt"
+```
 Create a public repository called example-5 (replaces spaces with dashes) in the current directory with 2 files main.oy and requirements.txt
