@@ -60,18 +60,22 @@ def main():
             ### updates stored token if a new one is supplied
             print("updating stored token...")
             token = args.token
-            os.system("setx GITHUBTOKEN "+token)
+            os.popen("setx GITHUBTOKEN "+token)
 
     except KeyError:
         if args.token == None:
             ### prompts for access token if not available
-            token = input("please enter your github token: ")
-            os.system("setx GITHUBTOKEN "+token)
+            while True:
+                token = input("please enter your github token, you can create one at https://github.com/settings/tokens/new?scopes=repo&description=init: ")
+                if token != "":
+                    os.popen("setx GITHUBTOKEN "+token)
+                    break
+                print("ERROR: no token entered")
         else:
             ## updates stored token if a new one is supplied
             print("updating stored token...")
             token = args.token
-            os.system("setx GITHUBTOKEN "+token)
+            os.popen("setx GITHUBTOKEN "+token)
 
     private = not args.visible
 
@@ -108,8 +112,8 @@ def main():
 
         ### sends request to github to create new repo
         r = post(url="https://api.github.com/user/repos",
-                data=dumps(payload), auth=("token", token))
-
+                    data=dumps(payload), auth=("token", token))
+            
         ### if creation is successful
         if r.status_code == 201:
             ### make directory and enter it
@@ -141,8 +145,17 @@ def main():
 
             ### creates an extra file if supplied
             if args.file != None:
-                file = open(args.file, "x")
-                file.close()
+                if " " in args.file:
+                    for item in args.file.split(" "):
+                        file = open(item, "x")
+                        file.close()
+                elif "," in args.file:
+                    for item in args.file.split(","):
+                        file=open(item, "x")
+                        file.close()
+                else:
+                    file = open(args.file, "x")
+                    file.close()
 
             ###creates file structure if supplied
             if args.type != None:
