@@ -13,7 +13,7 @@ class thread (threading.Thread):
         watchSass()
 
 def watchSass():
-    os.system("sass --no-source-map --watch ./scss/index.scss ./css/index.css")
+    os.system("sass --no-source-map --watch ./scss/index.scss ./css/index.css --style compressed")
 
 def main():
     print('''
@@ -79,188 +79,194 @@ def main():
     description = args.description
     path = args.path
 
-    print("creating new repository ", name, "...")
-
-    ### creates payload to post
-    payload = {
-        "name": name,
-        "description": description,
-        "private": private,
-        "has_issues": True,
-        "has_projects": True,
-        "has_wiki": True}
-
-    ### sends request to github to create new repo
-    r = post(url="https://api.github.com/user/repos",
-             data=dumps(payload), auth=("token", token))
-
-    ### if creation is successful
-    if r.status_code == 201:
-        print("creating README.md...")
-        ### if a path is supplied, move to it
-        if path != None:
-            if path[0] == ".":
-                if path[1] == '/' or path[1] == "\\":
-                    if path[2] == "/" or path[2] == "\\":
-                        os.chdir(os.getcwd()+"\\"+path[2:])
-                    else:
-                        os.chdir(os.getcwd()+"\\"+path[1:])
+    ### if a path is supplied, move to it
+    if path != None:
+        if path[0] == ".":
+            if path[1] == '/' or path[1] == "\\":
+                if path[2] == "/" or path[2] == "\\":
+                    os.chdir(os.getcwd()+"\\"+path[2:])
                 else:
-                    os.chdir(os.getcwd()+"\\"+path)
+                    os.chdir(os.getcwd()+"\\"+path[1:])
             else:
-                os.chdir(path)
-        
-        ### make directory and enter it
-        os.mkdir(name)
-        os.chdir("./"+name)
-
-        ### create readme
-        file = open("README.md", "w")
-
-        if description != None:
-            if "_" in description:
-                toWrite = "# "+name.split("_")+"\n"+description
-            elif "-" in description:
-                toWrite = "# "+name.split("-")+"\n"+description
-            else:
-                toWrite = "# "+name+"\n"+description
+                os.chdir(os.getcwd()+"\\"+path)
         else:
-            if "_" in name:
-                toWrite = "# "+" ".join(name.split("_"))
-            elif "-" in name:
-                toWrite = "# "+" ".join(name.split("-"))
+            os.chdir(path)
+    
+    
+
+    if name not in os.listdir():
+        print("creating new repository ", name, "...")
+
+        ### creates payload to post
+        payload = {
+            "name": name,
+            "description": description,
+            "private": private,
+            "has_issues": True,
+            "has_projects": True,
+            "has_wiki": True}
+
+        ### sends request to github to create new repo
+        r = post(url="https://api.github.com/user/repos",
+                data=dumps(payload), auth=("token", token))
+
+        ### if creation is successful
+        if r.status_code == 201:
+            ### make directory and enter it
+            os.mkdir(name)
+            os.chdir("./"+name)
+            
+            print("creating README.md...")
+
+            ### create readme
+            file = open("README.md", "w")
+
+            if description != None:
+                if "_" in description:
+                    toWrite = "# "+name.split("_")+"\n"+description
+                elif "-" in description:
+                    toWrite = "# "+name.split("-")+"\n"+description
+                else:
+                    toWrite = "# "+name+"\n"+description
             else:
-                toWrite = "# "+name
+                if "_" in name:
+                    toWrite = "# "+" ".join(name.split("_"))
+                elif "-" in name:
+                    toWrite = "# "+" ".join(name.split("-"))
+                else:
+                    toWrite = "# "+name
 
-        file.write(toWrite)
-        file.close()
-
-        ### creates an extra file if supplied
-        if args.file != None:
-            file = open(args.file, "x")
+            file.write(toWrite)
             file.close()
 
-        ###creates file structure if supplied
-        if args.type != None:
-            if args.type.lower() == "web":
-                ### web dev structure
-                #scss
-                    #index.css
-                #css
-                    #index.css
-                #js
-                    #index.js
-                #assets
-                #index.html
-                webstack = True
-                os.mkdir("scss")
-                os.mkdir("js")
-                os.mkdir("css")
-                os.mkdir("assets")
-                file = open("index.html", "w")
-                ###fills the html file with default code
-                content = ('''
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>'''+name+'''</title>
-        <meta name="description" content="'''+(description if description != None else "")+'''">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="./css/index.css">
-    </head>
-    <body>
-        <script src="./js/index.js" async></script>
-    </body>
-</html>
-                ''')
-                file.write(content)
-                file = open("./scss/index.scss", "w")
-                ### fills scss file with default code
-                file.write('''
-* {
-    margin: 0;
-    padding: 0;
-}
-                ''')
-                ### create blank css and js files
-                file = open("./css/index.css", "x")
-                file = open("./js/index.js", "x")
-
-                ### compile scss file to css
-                os.system(
-                    "sass --no-source-map ./scss/index.scss ./css/index.css")
-
-            elif args.type.lower() == "cmake":
-                ### c file structure
-                #include
-                #src
-                    #main.c
-                #CMakeFiles.txt
-                os.mkdir("include")
-                os.mkdir("src")
-                file = open("./src/main.c", "x")
-                file = open("./CMakeFiles.txt", "w")
-                ### fill cmakefile with information
-                file.write('''
-cmake_minimum_required(VERSION 3.10)
-project('''+name+''')
-add_executable(src/main.c)
-                ''')
+            ### creates an extra file if supplied
+            if args.file != None:
+                file = open(args.file, "x")
                 file.close()
 
-            elif args.type.lower() == "cmake++" or args.type.lower() == "cmakepp":
-                ### c++ file structure
-                #include
-                #src
-                    #main.cpp
-                #CMakeFiles.txt
-                os.mkdir("include")
-                os.mkdir("src")
-                file = open("./src/main.cpp", "x")
-                file = open("./CMakeFiles.txt", "w")
-                ### fill cmakefile with information
-                file.write('''
-cmake_minimum_required(VERSION 3.10)
-project('''+name+''')
-add_executable(src/main.cpp)
-                ''')
-                file.close()
+            ###creates file structure if supplied
+            if args.type != None:
+                if args.type.lower() == "web":
+                    ### web dev structure
+                    #scss
+                        #index.css
+                    #css
+                        #index.css
+                    #js
+                        #index.js
+                    #assets
+                    #index.html
+                    webstack = True
+                    os.mkdir("scss")
+                    os.mkdir("js")
+                    os.mkdir("css")
+                    os.mkdir("assets")
+                    file = open("index.html", "w")
+                    ###fills the html file with default code
+                    content = ('''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <title>'''+name+'''</title>
+            <meta name="description" content="'''+(description if description != None else "")+'''">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <link rel="stylesheet" href="./css/index.css">
+        </head>
+        <body>
+            <script src="./js/index.js" async></script>
+        </body>
+    </html>
+                    ''')
+                    file.write(content)
+                    file = open("./scss/index.scss", "w")
+                    ### fills scss file with default code
+                    file.write('''
+    * {
+        margin: 0;
+        padding: 0;
+    }
+                    ''')
+                    ### create blank css and js files
+                    file = open("./css/index.css", "x")
+                    file = open("./js/index.js", "x")
 
-            elif args.type.lower() == "rust" or args.type.lower() == "rs":
-                ### rust file structure
-                #src
-                    #main.rs
-                #Cargo.toml
-                os.system("cargo init")
+                    ### compile scss file to css
+                    os.system(
+                        "sass --no-source-map ./scss/index.scss ./css/index.css --style compressed")
 
-        ### initiate git repository
-        os.system("git init")
-        ### add files
-        os.system("git add .")
-        ### commit
-        os.system('''git commit -m "inital commit"''')
+                elif args.type.lower() == "cmake":
+                    ### c file structure
+                    #include
+                    #src
+                        #main.c
+                    #CMakeFiles.txt
+                    os.mkdir("include")
+                    os.mkdir("src")
+                    file = open("./src/main.c", "x")
+                    file = open("./CMakeFiles.txt", "w")
+                    ### fill cmakefile with information
+                    file.write('''
+    cmake_minimum_required(VERSION 3.10)
+    project('''+name+''')
+    add_executable(src/main.c)
+                    ''')
+                    file.close()
 
-        ### get username
-        username = subprocess.check_output("git config --global user.name", shell=True).decode().rstrip()
-        ### add github repository to remote
-        os.system("git remote add origin https://github.com/"+username+"/"+name)
-        os.system("git branch -m master main")
-        os.system("git push -u origin main")
+                elif args.type.lower() == "cmake++" or args.type.lower() == "cmakepp":
+                    ### c++ file structure
+                    #include
+                    #src
+                        #main.cpp
+                    #CMakeFiles.txt
+                    os.mkdir("include")
+                    os.mkdir("src")
+                    file = open("./src/main.cpp", "x")
+                    file = open("./CMakeFiles.txt", "w")
+                    ### fill cmakefile with information
+                    file.write('''
+    cmake_minimum_required(VERSION 3.10)
+    project('''+name+''')
+    add_executable(src/main.cpp)
+                    ''')
+                    file.close()
 
-        ### watches scss if webstack has been used
-        if webstack == True:
-            thread().start()
+                elif args.type.lower() == "rust" or args.type.lower() == "rs":
+                    ### rust file structure
+                    #src
+                        #main.rs
+                    #Cargo.toml
+                    os.system("cargo init")
 
-        ### open vscode
-        os.system("code .")
+            ### initiate git repository
+            os.system("git init")
+            ### add files
+            os.system("git add .")
+            ### commit
+            os.system('''git commit -m "inital commit"''')
 
-        
+            ### get username
+            username = subprocess.check_output("git config --global user.name", shell=True).decode().rstrip()
+            ### add github repository to remote
+            os.system("git remote add origin https://github.com/"+username+"/"+name)
+            os.system("git branch -m master main")
+            os.system("git push -u origin main")
 
-    elif r.status_code == 422:
-        print("ERROR: repository already exists on github")
-    elif r.status_code == 401:
-        print("ERROR: invalid token\TRY: init name description -t token")
+            ### watches scss if webstack has been used
+            if webstack == True:
+                thread().start()
+
+            ### open vscode
+            os.popen("code .")
+
+            
+
+        elif r.status_code == 422:
+            print("ERROR: repository already exists on github")
+        elif r.status_code == 401:
+            print("ERROR: invalid token\TRY: init name description -t token")
+    else:
+        print("ERROR: {} already a directory in {}".format(name, os.getcwd()))
 
 main()
